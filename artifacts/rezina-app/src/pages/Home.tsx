@@ -252,17 +252,47 @@ export default function Home() {
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
   const [formPhoto, setFormPhoto] = useState<string | null>(null);
+  const [formAddress, setFormAddress] = useState<string>('');
+  const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
 
-  // Auto-fill title when category is selected
+  // Reverse geocode GPS coords → street address using Nominatim
+  useEffect(() => {
+    if (!userLoc) return;
+    let cancelled = false;
+    setIsGeocodingAddress(true);
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${userLoc.lat}&lon=${userLoc.lng}&format=json&accept-language=ro`,
+      { headers: { 'Accept-Language': 'ro' } }
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        const addr = data?.address ?? {};
+        // Build a short human-readable street string
+        const parts: string[] = [];
+        if (addr.road) parts.push(addr.road);
+        if (addr.house_number) parts.push(addr.house_number);
+        if (addr.suburb || addr.neighbourhood) parts.push(addr.suburb || addr.neighbourhood);
+        const street = parts.join(', ');
+        setFormAddress(street || data?.display_name?.split(',')[0] || '');
+      })
+      .catch(() => { /* silent — GPS coords still sent */ })
+      .finally(() => { if (!cancelled) setIsGeocodingAddress(false); });
+    return () => { cancelled = true; };
+  }, [userLoc]);
+
+  // Auto-fill title when category is selected (appends street if known)
   const handleCategorySelect = useCallback((cat: string) => {
     setFormCategory(cat);
-    const defaultTitle = CATEGORY_CONFIG[cat]?.defaultTitle || '';
-    // Only auto-fill if empty or if it still matches a previous default
-    const currentIsDefault = Object.values(CATEGORY_CONFIG).some(c => c.defaultTitle === formTitle);
+    const base = CATEGORY_CONFIG[cat]?.defaultTitle || '';
+    const withStreet = formAddress ? `${base} ${formAddress}` : base;
+    const currentIsDefault = Object.values(CATEGORY_CONFIG).some(c =>
+      formTitle === c.defaultTitle || formTitle === `${c.defaultTitle} ${formAddress}`
+    );
     if (!formTitle || currentIsDefault) {
-      setFormTitle(defaultTitle);
+      setFormTitle(withStreet);
     }
-  }, [formTitle]);
+  }, [formTitle, formAddress]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -279,6 +309,7 @@ export default function Home() {
     setFormPhoto(null);
     setFormName('');
     setFormEmail('');
+    // Keep formAddress — it's tied to GPS location, not the form submission
   };
 
   const handleReportSubmit = (e: React.FormEvent) => {
@@ -482,15 +513,31 @@ export default function Home() {
               <div className="space-y-1.5">
                 <Label>Locație GPS</Label>
                 <div className={cn(
-                  'flex items-center gap-2 text-xs p-2.5 rounded-lg border',
+                  'flex items-start gap-2 text-xs p-2.5 rounded-lg border',
                   userLoc
                     ? 'text-green-400 bg-green-500/10 border-green-500/20'
                     : 'text-muted-foreground bg-muted/30 border-border'
                 )}>
-                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                  {userLoc
-                    ? `GPS detectat ✓ (${userLoc.lat.toFixed(5)}, ${userLoc.lng.toFixed(5)})`
-                    : 'GPS nedetectat — se va folosi centrul orașului'}
+                  <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    {userLoc ? (
+                      <>
+                        <div>GPS detectat ✓</div>
+                        {isGeocodingAddress && (
+                          <div className="text-muted-foreground flex items-center gap-1">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Se identifică strada…
+                          </div>
+                        )}
+                        {formAddress && !isGeocodingAddress && (
+                          <div className="text-foreground font-medium">{formAddress}</div>
+                        )}
+                        <div className="text-muted-foreground">{userLoc.lat.toFixed(5)}, {userLoc.lng.toFixed(5)}</div>
+                      </>
+                    ) : (
+                      <div>GPS nedetectat — se va folosi centrul orașului</div>
+                    )}
+                  </div>
                 </div>
               </div>
 

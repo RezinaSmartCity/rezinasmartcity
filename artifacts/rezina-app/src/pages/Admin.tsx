@@ -256,26 +256,30 @@ function AdminPanel({ password, onLogout }: { password: string; onLogout: () => 
   const allCategories = Object.keys(categories);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Top Nav */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-bold text-primary">🏙️ Rezina Smart City</span>
-            <span className="hidden sm:inline text-muted-foreground text-sm">/ Admin</span>
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm flex-shrink-0 z-50">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-base sm:text-lg font-bold text-primary truncate">🏙️ Rezina</span>
+            <span className="hidden sm:inline text-muted-foreground text-sm flex-shrink-0">Smart City / Admin</span>
+            <span className="sm:hidden text-muted-foreground text-xs flex-shrink-0">Admin</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Button variant="ghost" size="sm" onClick={load} disabled={loading} className="px-2">
               <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
             </Button>
-            <Button variant="ghost" size="sm" onClick={onLogout} className="text-muted-foreground">
-              <LogOut className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Deconectare</span>
+            <Button variant="ghost" size="sm" onClick={onLogout} className="text-muted-foreground px-2">
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">Ieșire</span>
             </Button>
           </div>
         </div>
-        {/* Tab bar */}
-        <div className="max-w-6xl mx-auto px-4 flex gap-0.5 overflow-x-auto pb-0">
+        {/* Tab bar — scrollable, no visible scrollbar */}
+        <div
+          className="max-w-6xl mx-auto px-3 sm:px-4 flex gap-0 overflow-x-auto"
+          style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+        >
           {([
             ['dashboard', 'Dashboard', BarChart3],
             ['reports', 'Sesizări', Inbox],
@@ -286,20 +290,21 @@ function AdminPanel({ password, onLogout }: { password: string; onLogout: () => 
               key={id}
               onClick={() => setTab(id)}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-2.5 text-sm border-b-2 transition-colors whitespace-nowrap',
+                'flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap flex-shrink-0',
                 tab === id
-                  ? 'border-primary text-primary font-medium'
+                  ? 'border-primary text-primary font-semibold'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {label}
             </button>
           ))}
         </div>
       </header>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-6">
+      <main className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <div className="max-w-6xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6">
 
         {/* ─── Dashboard ─── */}
         {tab === 'dashboard' && (
@@ -669,10 +674,11 @@ function AdminPanel({ password, onLogout }: { password: string; onLogout: () => 
             </div>
           </div>
         )}
+        </div>
       </main>
 
-      <footer className="border-t border-border py-3 text-center text-xs text-muted-foreground">
-        Rezina Smart City · Panou de administrare · Dezvoltat de <strong>Pavel Dordea</strong>
+      <footer className="border-t border-border py-2 text-center text-xs text-muted-foreground flex-shrink-0">
+        Rezina Smart City · Admin · <strong>Pavel Dordea</strong>
       </footer>
     </div>
   );
