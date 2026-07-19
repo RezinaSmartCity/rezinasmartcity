@@ -424,9 +424,9 @@ export default function Home() {
       // Open mailto link to notify authority
       const cfg = CATEGORY_CONFIG[formCategory];
       if (cfg?.authorityEmail) {
-        const subject = encodeURIComponent(`[Rezina Civic] ${formTitle}`);
+        const subject = encodeURIComponent(`[Rezina Smart City] ${formTitle}`);
         const body = encodeURIComponent(
-          `Sesizare nouă înregistrată în aplicația Rezina Civic:\n\n` +
+          `Sesizare nouă înregistrată în aplicația Rezina Smart City:\n\n` +
           `Categorie: ${cfg.label}\n` +
           `Titlu: ${formTitle}\n` +
           `Descriere: ${formDesc}\n` +
